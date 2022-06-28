@@ -7,4 +7,4 @@ And if you want to clean up after, run ```kubectl delete ns redis-sentinel```
 
 It creates all files in order in redis-sentinel namespace. Feel free to modify everything, this is just a template.
 
-More info [here]()
+More info [here](https://medium.com/@vitalijus.alsauskas/how-to-setup-redis-sentinel-cluster-on-kubernetes-openshift-b85d6ed8311e)
