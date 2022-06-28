@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+spec:
+  serviceName: redis
+  replicas: 3
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      initContainers:
+      - name: config
+        image: redis:7.0
+        env:
+          - name: REDIS_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: redis-secret
+                key: REDIS_PASSWORD
+        command: [ "sh", "-c", "/scripts/redis_init.sh" ]
+        volumeMounts:
+        - name: redis-config
+          mountPath: /etc/redis/
+        - name: config
+          mountPath: /tmp/redis/
+        - name: init-script
+          mountPath: /scripts/
+      containers:
+      - name: redis
+        image: redis:7.0
+        command: ["redis-server"]
+        args: ["/etc/redis/redis.conf"]
+        ports:
+        - containerPort: 6379
+          name: redis
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: redis-config
+          mountPath: /etc/redis/
+      volumes:
+      - name: data
+        emptyDir: {}
+      - name: redis-config
+        emptyDir: {}
+      - name: init-script
+        configMap:
+          name: redis-scripts-config-map
+          defaultMode: 0777
+          items:
+          - key: redis_init.sh
+            path: redis_init.sh
+      - name: config
+        configMap:
+          name: redis-config-map
+          items:
+          - key: redis.conf
+            path: redis.conf
